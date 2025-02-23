@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Diagnostics;
 using System.Text;
 using System.Linq;
@@ -84,14 +84,9 @@ internal class AppleMusicDiscordClient {
                     LargeImageKey = (showBigImage ? amInfo.CoverArtUrl : null) ?? Constants.DiscordAppleMusicImageKey,
                     LargeImageText = songAlbum
                 },
-                Type = ActivityType.Listening,
             };
             
-            if (amInfo.SongUrl != null) {
-                rp.Buttons = [new() {
-                    Label = "Listen on Apple Music", 
-                    Url = amInfo.SongUrl
-                }];
+        if (amInfo.SongUrl != null) {
             }
 
             if (amInfo.IsPaused) {

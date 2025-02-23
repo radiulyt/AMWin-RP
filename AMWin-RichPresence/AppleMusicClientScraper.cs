@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Diagnostics;
 using System.Timers;
 using System.Collections.Generic;
@@ -8,6 +8,10 @@ using FlaUI.UIA3;
 using FlaUI.Core.Conditions;
 using FlaUI.Core.AutomationElements;
 using System.Threading.Tasks;
+using System.IO;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Net.Http;
 
 namespace AMWin_RichPresence {
 
@@ -112,6 +116,72 @@ namespace AMWin_RichPresence {
             timer.Elapsed -= Refresh;
         }
 
+private async Task WriteNowPlayingToFile(AppleMusicInfo? songInfo)
+{
+    if (songInfo == null || string.IsNullOrWhiteSpace(songInfo.SongName) || string.IsNullOrWhiteSpace(songInfo.SongArtist))
+        return;
+
+    string nowPlayingFile = "now_playing.txt"; // Full track info
+    string artistFile = "artist.txt";         // Only artist
+    string trackFile = "track.txt";           // Only track
+    string albumArtFile = "album_art.jpg";    // Resized album artwork
+
+
+    try
+    {
+        // Write full track info
+        using (StreamWriter writer = new StreamWriter(nowPlayingFile, false))
+        {
+            writer.WriteLine($"Artist: {songInfo.SongArtist}");
+            writer.WriteLine($"Track: {songInfo.SongName}");
+            writer.WriteLine($"Album: {songInfo.SongAlbum}");
+            writer.WriteLine($"Time: {DateTime.Now}");
+        }
+
+        // Write artist only
+        using (StreamWriter writer = new StreamWriter(artistFile, false))
+        {
+            writer.WriteLine(songInfo.SongArtist);
+        }
+
+        // Write track only
+        using (StreamWriter writer = new StreamWriter(trackFile, false))
+        {
+            writer.WriteLine(songInfo.SongName);
+        }
+
+        if (!string.IsNullOrWhiteSpace(songInfo.CoverArtUrl))
+        {
+            await SaveAlbumArtwork(songInfo.CoverArtUrl, albumArtFile, 500, 500); // Set size to 500x500 pixels
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error writing to file: {ex.Message}");
+    }
+}
+
+private async Task SaveAlbumArtwork(string imageUrl, string savePath, int width, int height)
+{
+    try
+    {
+        using (HttpClient client = new HttpClient())
+        {
+            byte[] imageData = await client.GetByteArrayAsync(imageUrl);
+
+            using (MemoryStream ms = new MemoryStream(imageData))
+            using (Image originalImage = Image.FromStream(ms))
+            using (Bitmap resizedImage = new Bitmap(originalImage, new Size(width, height)))
+            {
+                resizedImage.Save(savePath, ImageFormat.Jpeg);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error downloading or saving album art: {ex.Message}");
+    }
+}
         public void ChangeRegion(string region) {
             this.appleMusicRegion = region;
             Refresh(this, null);
@@ -125,6 +195,9 @@ namespace AMWin_RichPresence {
                 logger?.Log($"Something went wrong while scraping: {ex}");
             }
             refreshHandler(appleMusicInfo);
+
+            // Call method to write song info to file
+             await WriteNowPlayingToFile(appleMusicInfo);
         }
 
         public async Task<AppleMusicInfo?> GetAppleMusicInfo() {
