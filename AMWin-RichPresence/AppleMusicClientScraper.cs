@@ -124,6 +124,7 @@ private async Task WriteNowPlayingToFile(AppleMusicInfo? songInfo)
     string nowPlayingFile = "now_playing.txt"; // Full track info
     string artistFile = "artist.txt";         // Only artist
     string trackFile = "track.txt";           // Only track
+    string trackartistFile = "track+artist.txt";   // Track - Artist format
     string albumArtFile = "album_art.jpg";    // Resized album artwork
 
 
@@ -148,6 +149,12 @@ private async Task WriteNowPlayingToFile(AppleMusicInfo? songInfo)
         using (StreamWriter writer = new StreamWriter(trackFile, false))
         {
             writer.WriteLine(songInfo.SongName);
+        }
+        
+        // Write track - artist format
+        using (StreamWriter writer = new StreamWriter(trackartistFile, false))
+        {
+            writer.WriteLine($"{songInfo.SongName} - {songInfo.SongArtist}");
         }
 
         if (!string.IsNullOrWhiteSpace(songInfo.CoverArtUrl))

@@ -1,11 +1,13 @@
-﻿using System;
+﻿﻿using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Security.Policy;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using Hardcodet.Wpf.TaskbarNotification;
+using Microsoft.VisualBasic;
 
 namespace AMWin_RichPresence {
     /// <summary>
